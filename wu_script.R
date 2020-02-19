@@ -5,16 +5,33 @@ set.seed(14)
 library(pROC)
 
 # Read data
-dat <- read.csv("C:/Users/gusta/Box Sync/Gustavs_arbete/Pek/Commentary_Wu/wu.csv", header=FALSE)
+dat <- read.csv("wu.csv", header=FALSE)
 dat$group <- c(rep("resistant", 21), rep("responder", 50))
 dat <- dat[, c(2, 3)]
 names(dat)[1] <- "delta_hamd"
+
+# Impute missing data point
+# One is missing in the reponder group. We can impute it because we know the mean, which is equal to point "Bar45".
+mean(dat$delta_hamd[dat$group == "responder"])
+# This is very close to the plotted value of 0.799. Imputation not possible on the basis of guessing an overplotted point. The last point is probably missing from the graph.
+# We attempt nonetheless to impute one more at the mean
+dat_imp <- dat
+dat_imp <- rbind(dat_imp, c(8, "responder"))
+dat_imp$delta_hamd <- as.numeric(dat_imp$delta_hamd)
 
 # Estimate ROC
 roc <- roc(dat$group, dat$delta_hamd)
 plot(roc)
 ci(roc)
+roc
 
+# Estimate ROC with imputation
+roc_imp <- roc(dat_imp$group, dat_imp$delta_hamd)
+plot(roc_imp)
+ci(roc_imp)
+roc_imp
+
+# Note: the following code is deprecated - permutations not necessary
 # Bootstrap samples
 n_iterations <- 1000
 rocs <- vector("list", n_iterations)
